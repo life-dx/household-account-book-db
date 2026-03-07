@@ -1,7 +1,7 @@
 
-CREATE SCHEMA IF NOT EXISTS user;
+CREATE SCHEMA IF NOT EXISTS auth;
 
-CREATE TABLE IF NOT EXISTS user.accounts (
+CREATE TABLE IF NOT EXISTS auth.accounts (
     user_id uuid PRIMARY KEY NOT NULL DEFAULT uuidv7(),
     google_sub varchar(255) NOT NULL,
     email varchar(255) NOT NULL,
@@ -11,35 +11,35 @@ CREATE TABLE IF NOT EXISTS user.accounts (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS user.groups (
+CREATE TABLE IF NOT EXISTS auth.groups (
     group_id uuid PRIMARY KEY NOT NULL DEFAULT uuidv7(),
     group_name varchar(255) NOT NULL,
     description TEXT,
-    user_id_1 uuid NOT NULL REFERENCES user.accounts(user_id) ON DELETE CASCADE,
-    user_id_2 uuid NOT NULL REFERENCES user.accounts(user_id) ON DELETE CASCADE,
+    user_id_1 uuid NOT NULL REFERENCES auth.accounts(user_id) ON DELETE CASCADE,
+    user_id_2 uuid NOT NULL REFERENCES auth.accounts(user_id) ON DELETE CASCADE,
     active boolean NOT NULL DEFAULT true,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- アクティブなグループのみを表示するビュー
-CREATE VIEW IF NOT EXISTS user.v_active_groups AS
+CREATE VIEW IF NOT EXISTS auth.v_active_groups AS
 SELECT group_id, group_name, description, user_id_1, user_id_2, created_at
-FROM user.groups
+FROM auth.groups
 WHERE active = true;
 
-CREATE TABLE IF NOT EXISTS user.user_contacts (
-    user_id uuid PRIMARY KEY NOT NULL REFERENCES user.accounts(user_id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS auth.user_contacts (
+    user_id uuid PRIMARY KEY NOT NULL REFERENCES auth.accounts(user_id) ON DELETE CASCADE,
     line_user_id varchar(50) NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 
 CREATE TRIGGER update_user_accounts_modtime
-BEFORE UPDATE ON user.accounts
+BEFORE UPDATE ON auth.accounts
 FOR EACH ROW
 EXECUTE PROCEDURE update_timestamp();
 
 CREATE TRIGGER update_user_contacts_modtime
-BEFORE UPDATE ON user.user_contacts
+BEFORE UPDATE ON auth.user_contacts
 FOR EACH ROW
 EXECUTE PROCEDURE update_timestamp();
