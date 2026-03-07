@@ -2,12 +2,12 @@ CREATE SCHEMA IF NOT EXISTS expense;
 
 CREATE TABLE IF NOT EXISTS expense.expense_headers (
     expense_id uuid PRIMARY KEY NOT NULL DEFAULT uuidv7(),
-    group_id uuid NOT NULL REFERENCES user.groups(group_id) ON DELETE CASCADE,
+    group_id uuid NOT NULL REFERENCES auth.groups(group_id) ON DELETE CASCADE,
     expense_date date NOT NULL,
     expense_title varchar(255) NOT NULL,
     invoice_rate smallint NOT NULL,
-    expensed_by uuid NOT NULL REFERENCES user.accounts(user_id) ON DELETE CASCADE,
-    created_by uuid NOT NULL REFERENCES user.accounts(user_id) ON DELETE CASCADE,
+    expensed_by uuid NOT NULL REFERENCES auth.accounts(user_id) ON DELETE CASCADE,
+    created_by uuid NOT NULL REFERENCES auth.accounts(user_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     fixed boolean NOT NULL DEFAULT false,
@@ -25,18 +25,18 @@ CREATE TABLE IF NOT EXISTS expense.standard_items (
     item_id uuid PRIMARY KEY NOT NULL DEFAULT uuidv7(),
     item_name varchar(255) NOT NULL,
     price integer NULL,
-    category_id varchar(50) NOT NULL REFERENCES expense.categories(category_id) ON DELETE
+    category_id varchar(50) NOT NULL REFERENCES expense.categories(category_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS expense.expense_rules (
     rule_id uuid PRIMARY KEY NOT NULL DEFAULT uuidv7(),
-    group_id uuid NOT NULL REFERENCES user.groups(group_id) ON DELETE CASCADE,
+    group_id uuid NOT NULL REFERENCES auth.groups(group_id) ON DELETE CASCADE,
     rule_name varchar(255) NOT NULL,
     behavior_code smallint NOT NULL,
-    notify_to uuid NOT NULL REFERENCES user.accounts(user_id) ON DELETE CASCADE,
+    notify_to uuid NOT NULL REFERENCES auth.accounts(user_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_by uuid NOT NULL REFERENCES user.accounts(user_id) ON DELETE CASCADE
+    updated_by uuid NOT NULL REFERENCES auth.accounts(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS expense.expense_bodies (
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS expense.expense_bodies (
     item_id uuid PRIMARY KEY NOT NULL DEFAULT uuidv7(),
     item_name varchar(255) NOT NULL,
     price integer NOT NULL,
-    category_id varchar(50) NOT NULL REFERENCES expense.categories(category_id) ON DELETE
+    category_id varchar(50) NOT NULL REFERENCES expense.categories(category_id) ON DELETE CASCADE,
     quantity integer NOT NULL DEFAULT 1,
     rule_id uuid REFERENCES expense.expense_rules(rule_id) ON DELETE SET NULL,
     fixed boolean NOT NULL DEFAULT false,
@@ -55,12 +55,12 @@ CREATE TABLE IF NOT EXISTS expense.expense_bodies (
 CREATE TABLE IF NOT EXISTS expense.confirm_histories (
     expense_id uuid NOT NULL REFERENCES expense.expense_headers(expense_id) ON DELETE CASCADE,
     confirmed boolean NOT NULL,
-    confirmed_by uuid NOT NULL REFERENCES user.accounts(user_id) ON DELETE CASCADE,
+    confirmed_by uuid NOT NULL REFERENCES auth.accounts(user_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     forced boolean NOT NULL DEFAULT false
 );
 
-CREATE VIEW IF NOT EXISTS expense.v_confirm_status AS
+CREATE OR REPLACE VIEW expense.v_confirm_status AS
 SELECT
     eh.expense_id,
     eh.expense_title,
@@ -74,7 +74,7 @@ FROM
     expense.expense_headers eh
 LEFT JOIN (
     SELECT DISTINCT ON (expense_id) *
-    FROM expense.expense_confirm_histories
+    FROM expense.confirm_histories
     ORDER BY expense_id, created_at DESC
 ) ech ON eh.expense_id = ech.expense_id;
 

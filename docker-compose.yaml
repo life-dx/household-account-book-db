@@ -6,9 +6,9 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: account_book_test
     volumes:
-      - ./setup/01-create-function.sql:/docker-entrypoint-initdb.d/create-function.sql
-      - ./setup/02-create-user-table.sql:/docker-entrypoint-initdb.d/create-user-table.sql
-      - ./setup/03-create-expense-table.sql:/docker-entrypoint-initdb.d/create-expense-table.sql
+      - ./setup/01-create-function.sql:/docker-entrypoint-initdb.d/01-create-function.sql
+      - ./setup/02-create-user-table.sql:/docker-entrypoint-initdb.d/02-create-user-table.sql
+      - ./setup/03-create-expense-table.sql:/docker-entrypoint-initdb.d/03-create-expense-table.sql
       - ./data:/var/lib/postgresql
     ports:
       - "5432:5432"
