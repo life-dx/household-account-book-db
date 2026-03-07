@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS expense.standard_items (
     item_id uuid PRIMARY KEY NOT NULL DEFAULT uuidv7(),
     item_name varchar(255) NOT NULL,
     price integer NULL,
-    category_id varchar(50) NOT NULL REFERENCES expense.categories(category_id) ON DELETE
+    category_id varchar(50) NOT NULL REFERENCES expense.categories(category_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS expense.expense_rules (
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS expense.expense_bodies (
     item_id uuid PRIMARY KEY NOT NULL DEFAULT uuidv7(),
     item_name varchar(255) NOT NULL,
     price integer NOT NULL,
-    category_id varchar(50) NOT NULL REFERENCES expense.categories(category_id) ON DELETE
+    category_id varchar(50) NOT NULL REFERENCES expense.categories(category_id) ON DELETE CASCADE,
     quantity integer NOT NULL DEFAULT 1,
     rule_id uuid REFERENCES expense.expense_rules(rule_id) ON DELETE SET NULL,
     fixed boolean NOT NULL DEFAULT false,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS expense.confirm_histories (
     forced boolean NOT NULL DEFAULT false
 );
 
-CREATE VIEW IF NOT EXISTS expense.v_confirm_status AS
+CREATE OR REPLACE VIEW expense.v_confirm_status AS
 SELECT
     eh.expense_id,
     eh.expense_title,
@@ -74,7 +74,7 @@ FROM
     expense.expense_headers eh
 LEFT JOIN (
     SELECT DISTINCT ON (expense_id) *
-    FROM expense.expense_confirm_histories
+    FROM expense.confirm_histories
     ORDER BY expense_id, created_at DESC
 ) ech ON eh.expense_id = ech.expense_id;
 

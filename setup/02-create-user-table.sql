@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS auth.groups (
 );
 
 -- アクティブなグループのみを表示するビュー
-CREATE VIEW IF NOT EXISTS auth.v_active_groups AS
+CREATE OR REPLACE VIEW auth.v_active_groups AS
 SELECT group_id, group_name, description, user_id_1, user_id_2, created_at
 FROM auth.groups
 WHERE active = true;
